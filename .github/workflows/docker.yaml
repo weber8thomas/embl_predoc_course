@@ -3,7 +3,8 @@ name: Build & Push docker container
 on:
   push:
     branches:
-      - main
+      # - main
+      - dev
 
 env:
   IMAGE_NAME: embl_predoc_sv_computational_day1
