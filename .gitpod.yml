@@ -11,3 +11,7 @@ vscode:
     - REditorSupport.r-lsp
     - tomoki1207.pdf
     - snakemake.snakemake-lang
+    - TianyiShi.rmarkdown
+tasks:
+  - init: /workspace/embl_predoc_course/run.sh
+    command: cp -r /workspace/embl_predoc_course/.jupyter /home/gitpod/
