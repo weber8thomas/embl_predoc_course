@@ -1,1 +1,6 @@
-image: docker.io/weber8thomas/embl_predoc_sv_computational_day1:1.0.0
+image: #docker.io/weber8thomas/embl_predoc_sv_computational_day1:1.0.0
+  file: ./Docker_recipes/Dockerfile-day1.dockerfile
+ports:
+  - name: JupyterLab
+    port: 8000
+    onOpen: open-browser
