@@ -1,6 +1,13 @@
 image: #docker.io/weber8thomas/embl_predoc_sv_computational_day1:1.0.0
   file: ./Docker_recipes/Dockerfile-day1.dockerfile
-ports:
-  - name: JupyterLab
-    port: 8000
-    onOpen: open-browser
+vscode:
+  extensions:
+    - ms-toolsai.jupyter
+    - ms-python.python
+    - ms-toolsai.jupyter-renderers
+    - ms-toolsai.jupyter-keymap
+    - ms-toolsai.vscode-jupyter-cell-tags
+    - REditorSupport.r
+    - REditorSupport.r-lsp
+    - tomoki1207.pdf
+    - snakemake.snakemake-lang
