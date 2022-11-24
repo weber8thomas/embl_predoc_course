@@ -1,0 +1,58 @@
+# Hidden folders & files
+.DS_Store
+.tests/._.DS_Store
+.vscode/
+.snakemake/
+.panoptes.db
+._.DS_Store
+.pytest_cache/
+.condarc
+files.txt
+workflow/.conda/
+.local/share/jupyter/
+.jupyter/
+
+# Tmp files & execution outputs
+*.pyc
+*.zip
+*.gz
+*.db
+*.png
+*.pdf
+*.svg
+*.tsv
+*.csv
+
+# Links
+*@
+
+# Mosaicatcher folders
+chroms/
+counts/
+log/
+plots/
+segmentation/
+segmentation2/
+snv_calls/
+strand_states/
+sv_probabilities/
+workflow/config/config_df.tsv
+workflow/config/exclude_file.txt
+workflow/config/exclude_file
+
+# Docs
+docs/build/
+build/
+*.html
+workflow/static/
+
+# Python
+__pycache__
+workflow/scripts/__pycache__
+
+*.bam*
+*.fa*
+*.pdf
+*.bcf*
+qc_*
+test*

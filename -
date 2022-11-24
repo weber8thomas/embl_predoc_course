@@ -1,0 +1,22 @@
+total 176
+drwxr-sr-x 17 tweber korbel  4096 Sep 22 17:34 ./
+drwxr-sr-x 13 tweber korbel  4096 Nov 15 11:43 ../
+drwxr-sr-x  3 tweber korbel 24576 Oct 15 08:22 bin/
+drwxr-sr-x  2 tweber korbel  4096 Sep 11 20:56 compiler_compat/
+drwxr-sr-x  2 tweber korbel 24576 Sep 11 21:17 conda-meta/
+-rw-------  1 tweber korbel  4096 Sep 22 17:34 ._.DS_Store
+-rw-------  1 tweber korbel  6148 Sep 22 17:35 .DS_Store
+-rw-r--r--  1 tweber korbel     0 Sep 11 21:17 env_setup_done
+-rw-r--r--  1 tweber korbel     0 Sep 11 20:53 env_setup_start
+drwxr-sr-x  4 tweber korbel  4096 Sep 11 20:57 etc/
+drwxr-sr-x  2 tweber korbel  4096 Sep 11 20:55 fonts/
+drwxr-sr-x 34 tweber korbel 16384 Sep 11 20:57 include/
+drwxr-sr-x 27 tweber korbel 36864 Sep 22 17:34 lib/
+drwxr-sr-x  3 tweber korbel  4096 Sep 11 20:56 libexec/
+drwxr-sr-x  3 tweber korbel  4096 Sep 11 20:56 man/
+drwxr-sr-x  2 tweber korbel  4096 Sep 11 20:56 sbin/
+drwxr-sr-x 25 tweber korbel  4096 Sep 22 17:35 share/
+drwxr-sr-x  3 tweber korbel  4096 Sep 11 20:56 ssl/
+drwxr-sr-x  3 tweber korbel  4096 Sep 11 20:56 var/
+drwxr-sr-x  3 tweber korbel  4096 Sep 11 20:55 x86_64-conda_cos6-linux-gnu/
+drwxr-sr-x  6 tweber korbel  4096 Sep 11 20:55 x86_64-conda-linux-gnu/

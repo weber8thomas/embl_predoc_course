@@ -1,7 +1,254 @@
-# TEST
+%\VignetteIndexEntry{EMBL singlecell Omics Course}
+%\VignetteEngine{knitr::knitr}
+\documentclass{article}
 
-```{r}
-console.log("Hello")
-```
+<<style-knitr, eval=TRUE, echo=FALSE, results='asis'>>=
+BiocStyle::latex()
+@
 
+\author{Tobias Rausch, modified by Hyobin Jeong}
+\title{EMBL predoc course 2019 Day1 Delly}
 
+\begin{document}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE
+)
+@
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE
+)
+@
+
+\maketitle
+\tableofcontents
+\clearpage
+<<options, results='hide', message=FALSE, eval=TRUE, echo=FALSE>>=
+library(breakpointR)
+#library(StrandPhaseR)
+options(width=90)
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+In this practical we will learn how to identify somatic structural variations using whole genome sequencing of bulk samples (WGS) and Delly (Rausch et al. 2012). We will start from the bam file which includes three example chromosomes (chr10, chr13, chr22) and then make somatic SV calling.
+
+This practical is largely based on the tutorial from Tobias Rausch for SV calling
+
+https://tobiasrausch.com/courses/vc/sv/
+
+\section{Basics of linux command}
+We will firstly start warming up with some basic linux command lines we will frequently use during the practical session.
+
+<<eval=FALSE>>==
+
+## login to the EMBL server
+
+ssh jeong@seneca
+
+## Go to the specific folder
+
+cd /scratch/
+
+## Make your own folder for the practice session
+
+mkdir name_abcd
+
+## Go to the folder we just made
+
+cd name_abcd
+
+## Check the location where are we now?
+
+pwd
+
+##Here are the list of file paths of the data we want to analyze today
+##Let's check how the bam files are look like inside
+
+##1. RPE1 WT
+samtools view \
+/scratch/jeong/WGS/Practice_RPE/RPEWtp30_chr10_chr13_chr22.bam \
+| less -S
+
+##2. RPE1 BM510
+samtools view \
+/scratch/jeong/WGS/Practice_RPE/BM510_chr10_chr13_chr22.bam \
+| less -S
+
+##3. synthetic mixture of WT and BM510 data
+samtools view \
+/scratch/jeong/WGS/Practice_RPE/BM510_WT_chr10_chr13_chr22_mixture_RG.bam \
+| less -S
+
+@
+
+\section{Quality Checking of bam file}
+Paired-end methods can be affected by a skewed insert size distribution, read-depth methods by non-uniform coverage and split-read methods suffer from high sequencing error rates that cause mis-mappings. Prior to any structural variant discovery you should therefore evaluate the quality of the data such as the percentage of mapped reads, singletons, duplicates, properly paired reads and the insert size and coverage distributions. Picard, SAMtools, FastQC and Alfred compute some of these alignment statistics as shown below.
+
+Regarding the QC interpretation, there are some general things to watch out for such as mapping percentages below 70 percentage, larger than 20 percentage duplicates or multiple peaks in the insert size distribution. Be aware that many alignment statistics vary largely by protocol and hence, it's usually best to compare multiple different sequencing runs using the same protocol (DNA-seq, RNA-seq, ChIP-seq, paired-end, single-end or mate-pair) against each other, which then highlights the outliers.
+
+<<eval=FALSE>>==
+alfred qc -r /g/solexa/bin/genomesNew/GRCh38Decoy/GRCh38Decoy.fa \
+-o qc_RPEWtp30_chr10_chr13_chr22.tsv.gz -j qc_RPEWtp30_chr10_chr13_chr22.json.gz \
+/scratch/jeong/WGS/Practice_RPE/RPEWtp30_chr10_chr13_chr22.bam
+
+zcat qc_RPEWtp30_chr10_chr13_chr22.tsv.gz | grep ^ME \
+
+> qc_RPEWtp30_chr10_chr13_chr22.txt
+
+awk '
+{
+for (i=1; i<=NF; i++) {
+a[NR,i] = $i
+}
+}
+NF>p { p = NF }
+END {  
+ for(j=1; j<=p; j++) {
+str=a[1,j]
+for(i=2; i<=NR; i++){
+str=str" "a[i,j];
+}
+print str
+}
+}' qc_RPEWtp30_chr10_chr13_chr22.txt | less -S
+@
+Questions for quality checking
+
+1. What is the median coverage of the data set?
+2. What is the mapping percentage of the data set? and what will be the cutoff?
+3. What is the duplicate rate? and what will be the cutoff?
+
+\section{Structural Variant Calling}
+This is to identify structural variants from normal or tumor samples. This example is to detect duplication (DUP). Let's detect other classes of structural variations also.
+You can detect several SV types (DEL, DUP, INV, TRA) using the similar command line with -t option.
+<<eval=FALSE>>==
+##Example of duplication calling
+delly call -n -q 20 -t DUP -g /g/solexa/bin/genomesNew/GRCh38Decoy/GRCh38Decoy.fa \
+-o sv_DUP_chr10_chr13_chr22.bcf /scratch/jeong/WGS/Practice_RPE/BM510_chr10_chr13_chr22.bam \
+/scratch/jeong/WGS/Practice_RPE/RPEWtp30_chr10_chr13_chr22.bam
+
+##Check the result of duplication calling
+bcftools view sv_DUP_chr10_chr13_chr22.bcf | less -S
+
+@
+
+\section{Somatic Filtering}
+This is to identify structural variants specific to the tumor samples compared to normal. This example is to detect duplication (DUP). Let's detect other classes of structural variations also.
+<<eval=FALSE>>==
+##Preparation of sample list
+cp /scratch/jeong/WGS/spl.tsv ./
+
+##Example of somatic duplication filtering
+delly filter -t DUP -p -f somatic -o somatic_DUP.bcf -a 0.25 \
+-s spl.tsv sv_DUP_chr10_chr13_chr22.bcf
+
+##Check the result of somatic duplication filtering
+bcftools view somatic_DUP.bcf | less -S
+
+@
+
+Question: What kind of somatic structural variation did you detect in BM510 compared to WT?
+
+\section{Visualize SVs in circos plot}
+In this section, we will visualize detected somatic SV in circos plot using R studio.
+<<eval=FALSE>>==
+##Open the R studio
+seneca.embl.de
+
+##We need RCircos package for plotting
+install.packages('RCircos')
+
+##Initialize parameters
+library('RCircos')
+data(RCircos.Histogram.Data)
+data(RCircos.Heatmap.Data)
+data(RCircos.Link.Data)
+data("UCSC.HG38.Human.CytoBandIdeogram")
+
+chr.exclude <- "chrY";
+cyto.info <- UCSC.HG38.Human.CytoBandIdeogram;
+tracks.inside <- 10;
+tracks.outside <- 0;
+RCircos.Set.Core.Components(cyto.info, chr.exclude, tracks.inside, tracks.outside);
+
+rcircos.params <- RCircos.Get.Plot.Parameters();
+rcircos.cyto <- RCircos.Get.Plot.Ideogram();
+rcircos.position <- RCircos.Get.Plot.Positions();
+RCircos.List.Plot.Parameters()
+
+rcircos.params <- RCircos.Get.Plot.Parameters();
+rcircos.params$heatmap.color <- colorRampPalette(rev(RColorBrewer::brewer.pal(11,"RdBu")))(256);
+RCircos.Reset.Plot.Parameters(rcircos.params);
+RCircos.List.Plot.Parameters();
+
+##Plot ideogram
+out.file <- "RCircosDemoHumanGenome.pdf";
+pdf(file=out.file, height=8, width=8, compress=TRUE);
+RCircos.Set.Plot.Area();
+RCircos.Chromosome.Ideogram.Plot();
+dev.off()
+
+@
+
+Now we can add the translocation detected by Delly
+<<eval=FALSE>>==
+##Plot translocation using ribbon
+data(RCircos.Ribbon.Data)
+TL_link <- RCircos.Ribbon.Data[1,]
+TL_link$chromA <- c("chr22")
+TL_link$chromStartA <- c(37934425)
+TL_link$chromEndA <- c(37934425)
+TL_link$chromB <- c("chr13")
+TL_link$chromStartB <- c(20412250)
+TL_link$chromEndB <- c(20412250)
+
+out.file <- "RCircosDemoHumanGenome.pdf";
+pdf(file=out.file, height=8, width=8, compress=TRUE);
+RCircos.Set.Plot.Area();
+RCircos.Chromosome.Ideogram.Plot();
+
+track.num <- 1;
+RCircos.Link.Plot(TL_link, track.num, TRUE);
+RCircos.Ribbon.Plot(ribbon.data=TL_link, track.num=9, by.chromosome=TRUE, twist=FALSE);
+dev.off()
+
+@
+
+\newpage
+
+\section{Detection of subclonal SVs}
+So far, we have tried to identify clonal SVs in BM510 compared to WT. What about subclonal SVs? To see if we can detect subclonal SVs with low variant allele frequency we have prepared synthetic mixture data which includes 80 percentage of reads from WT and 20 percentage of reads from BM510. If you repeat Delly SV call and somatic filtering on translocation (TRA), can you detect this subclonal SVs which is carried by 20 percentage of the cells?
+
+<<eval=FALSE>>==
+##Call TRA using mixture data
+delly call -n -q 20 -t TRA -g /g/solexa/bin/genomesNew/GRCh38Decoy/GRCh38Decoy.fa \
+-o sv_TRA_chr10_chr13_chr22_mixture.bcf \
+/scratch/jeong/WGS/Practice_RPE/BM510_WT_chr10_chr13_chr22_mixture_RG.bam \
+/scratch/jeong/WGS/Practice_RPE/RPEWtp30_chr10_chr13_chr22.bam
+
+##Check the result of TRA calling
+bcftools view sv_TRA_chr10_chr13_chr22_mixture.bcf | less -S
+
+##Filtering somatic TRA using mixture data
+delly filter -t TRA -p -f somatic -o somatic_TRA_mixture.bcf -a 0.05 \
+-s spl.tsv sv_TRA_chr10_chr13_chr22_mixture.bcf
+
+##Check the result of somatic TRA calling
+bcftools view somatic_TRA_mixture.bcf | less -S
+
+@
+
+\newpage
+
+\section{Session Info}
+
+<<sessionInfo, results='asis', eval=TRUE>>=
+toLatex(sessionInfo())
+@
+
+\end{document}
